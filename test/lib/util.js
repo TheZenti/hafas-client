@@ -1,8 +1,10 @@
 'use strict'
 
 const isRoughlyEqual = require('is-roughly-equal')
-const {DateTime} = require('luxon')
+const moment = require('moment-timezone')
 const a = require('assert')
+
+moment.locale('de-DE')
 
 const hour = 60 * 60 * 1000
 const day = 24 * hour
@@ -10,10 +12,7 @@ const week = 7 * day
 
 // next Monday 10 am
 const createWhen = (timezone, locale) => {
-	return DateTime.fromMillis(Date.now(), {
-		zone: timezone,
-		locale,
-	}).startOf('week').plus({weeks: 1, hours: 10}).toJSDate()
+	return moment().tz(timezone).startOf('week').add(1, 'w').add(10, 'h').toDate()
 }
 
 const assertValidWhen = (actual, expected, name) => {

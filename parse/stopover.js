@@ -25,7 +25,7 @@ const createParseStopover = (profile, opt, data, date) => {
 		if (st.aTimeR && st.aTimeS) {
 			const realtime = profile.parseDateTime(profile, date, st.aTimeR)
 			const planned = profile.parseDateTime(profile, date, st.aTimeS)
-			res.arrivalDelay = Math.round((realtime - planned) / 1000)
+			res.arrivalDelay = realtime.diff(planned, 'seconds')
 		}
 
 		if (st.dTimeR || st.dTimeS) {
@@ -35,7 +35,7 @@ const createParseStopover = (profile, opt, data, date) => {
 		if (st.dTimeR && st.dTimeS) {
 			const realtime = profile.parseDateTime(profile, date, st.dTimeR)
 			const planned = profile.parseDateTime(profile, date, st.dTimeS)
-			res.departureDelay = Math.round((realtime - planned) / 1000)
+			res.departureDelay = realtime.diff(planned, 'seconds')
 		}
 
 		if (st.aPlatfR && st.aPlatfS && st.aPlatfR !== st.aPlatfS) {

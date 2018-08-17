@@ -31,7 +31,7 @@ const createParseArrOrDep = (profile, opt, data, prefix) => {
 		if (tR && tP) {
 			const realtime = profile.parseDateTime(profile, d.date, tR)
 			const planned = profile.parseDateTime(profile, d.date, tP)
-			res.delay = Math.round((realtime - planned) / 1000)
+			res.delay = realtime.diff(planned, 'seconds')
 		} else res.delay = null
 
 		// todo: DRY with parseStopover

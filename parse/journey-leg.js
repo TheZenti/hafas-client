@@ -65,12 +65,12 @@ const createParseJourneyLeg = (profile, opt, data) => {
 		if (pt.dep.dTimeR && pt.dep.dTimeS) {
 			const realtime = profile.parseDateTime(profile, j.date, pt.dep.dTimeR)
 			const planned = profile.parseDateTime(profile, j.date, pt.dep.dTimeS)
-			res.departureDelay = Math.round((realtime - planned) / 1000)
+			res.departureDelay = realtime.diff(planned, 'seconds')
 		}
 		if (pt.arr.aTimeR && pt.arr.aTimeS) {
 			const realtime = profile.parseDateTime(profile, j.date, pt.arr.aTimeR)
 			const planned = profile.parseDateTime(profile, j.date, pt.arr.aTimeS)
-			res.arrivalDelay = Math.round((realtime - planned) / 1000)
+			res.arrivalDelay = realtime.diff(planned, 'seconds')
 		}
 
 		if (pt.jny && pt.jny.polyG) {

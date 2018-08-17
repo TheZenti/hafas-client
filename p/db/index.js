@@ -301,7 +301,7 @@ const formatStation = (id) => {
 // todo: find option for absolute number of results
 
 const dbProfile = {
-	locale: 'de-DE',
+	locale: 'de',
 	timezone: 'Europe/Berlin',
 	endpoint: 'https://reiseauskunft.bahn.de/bin/mgate.exe',
 

@@ -17,7 +17,7 @@ const parseDateTime = (profile, date, time) => {
 
 	const offset = time.length > 6 ? parseInt(time.slice(0, -6)) : 0
 
-	const dt = moment(pDate.join('-') + 'T' + pTime.join(':'), 'Europe/Berlin')
+	const dt = moment.tz(pDate.join('-') + 'T' + pTime.join(':'), 'Europe/Berlin')
 	return offset > 0 ? dt.add(`${offset}d`) : dt
 }
 

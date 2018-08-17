@@ -2,7 +2,7 @@
 
 const moment = require('moment-timezone')
 
-moment.locale('de-DE')
+moment.locale('de')
 
 const parseDateTime = (profile, date, time) => {
 	const pDate = [date.substr(-8, 4), date.substr(-4, 2), date.substr(-2, 2)]

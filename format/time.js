@@ -1,10 +1,10 @@
 'use strict'
 
 const moment = require('moment-timezone')
-moment.locale('de-DE')
+moment.locale('de')
 
 const formatTime = (profile, when) => {
-	return moment(+when).tz(timezone).format('HHmmss')
+	return moment(when, profile.timezone).format('HHmmss')
 }
 
 module.exports = formatTime

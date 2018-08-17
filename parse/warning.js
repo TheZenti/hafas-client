@@ -33,9 +33,9 @@ const parseWarning = (profile, w, icons) => {
 		text: brToNewline(w.text),
 		priority: w.prio,
 		category: w.cat, // todo: parse to sth meaningful
-		validFrom: parseDateTime(profile, w.sDate, w.sTime).toISO(),
-		validUntil: parseDateTime(profile, w.eDate, w.eTime).toISO(),
-		modified: parseDateTime(profile, w.lModDate, w.lModTime).toISO()
+		validFrom: parseDateTime(profile, w.sDate, w.sTime).toISOString(),
+		validUntil: parseDateTime(profile, w.eDate, w.eTime).toISOString(),
+		modified: parseDateTime(profile, w.lModDate, w.lModTime).toISOString()
 	}
 }
 

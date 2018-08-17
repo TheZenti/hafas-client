@@ -1,6 +1,8 @@
 'use strict'
 
-const {DateTime} = require('luxon')
+const moment = require('moment-timezone')
+
+moment.locale('de-DE')
 
 const parseDateTime = (profile, date, time) => {
 	const pDate = [date.substr(-8, 4), date.substr(-4, 2), date.substr(-2, 2)]
@@ -15,11 +17,8 @@ const parseDateTime = (profile, date, time) => {
 
 	const offset = time.length > 6 ? parseInt(time.slice(0, -6)) : 0
 
-	const dt = DateTime.fromISO(pDate.join('-') + 'T' + pTime.join(':'), {
-		locale: profile.locale,
-		zone: profile.timezone
-	})
-	return offset > 0 ? dt.plus({days: offset}) : dt
+	const dt = moment(pDate.join('-') + 'T' + pTime.join(':'), 'Europe/Berlin')
+	return offset > 0 ? dt.add(`${offset}d`) : dt
 }
 
 module.exports = parseDateTime

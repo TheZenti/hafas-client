@@ -20,7 +20,7 @@ const createParseStopover = (profile, opt, data, date) => {
 		// todo: DRY with parseJourneyLeg
 		if (st.aTimeR || st.aTimeS) {
 			const arr = profile.parseDateTime(profile, date, st.aTimeR || st.aTimeS)
-			res.arrival = arr.toISO()
+			res.arrival = arr.toISOString()
 		}
 		if (st.aTimeR && st.aTimeS) {
 			const realtime = profile.parseDateTime(profile, date, st.aTimeR)
@@ -30,7 +30,7 @@ const createParseStopover = (profile, opt, data, date) => {
 
 		if (st.dTimeR || st.dTimeS) {
 			const dep = profile.parseDateTime(profile, date, st.dTimeR || st.dTimeS)
-			res.departure = dep.toISO()
+			res.departure = dep.toISOString()
 		}
 		if (st.dTimeR && st.dTimeS) {
 			const realtime = profile.parseDateTime(profile, date, st.dTimeR)
@@ -57,14 +57,14 @@ const createParseStopover = (profile, opt, data, date) => {
 				res.arrival = res.arrivalDelay = null
 				if (st.aTimeS) {
 					const arr = profile.parseDateTime(profile, date, st.aTimeS)
-					res.formerScheduledArrival = arr.toISO()
+					res.formerScheduledArrival = arr.toISOString()
 				}
 			}
 			if (st.dCncl) {
 				res.departure = res.departureDelay = null
 				if (st.dTimeS) {
 					const arr = profile.parseDateTime(profile, date, st.dTimeS)
-					res.formerScheduledDeparture = arr.toISO()
+					res.formerScheduledDeparture = arr.toISOString()
 				}
 			}
 		}

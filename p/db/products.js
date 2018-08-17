@@ -24,7 +24,7 @@ module.exports = [
 		bitmasks: [4],
 		name: 'RegionalExpress & InterRegio',
 		short: 'RE/IR',
-		default: true
+		default: false
 	},
 	{
 		id: 'regional',
@@ -32,7 +32,7 @@ module.exports = [
 		bitmasks: [8],
 		name: 'Regio',
 		short: 'RB',
-		default: true
+		default: false
 	},
 	{
 		id: 'suburban',
@@ -40,7 +40,7 @@ module.exports = [
 		bitmasks: [16],
 		name: 'S-Bahn',
 		short: 'S',
-		default: true
+		default: false
 	},
 	{
 		id: 'bus',
@@ -48,7 +48,7 @@ module.exports = [
 		bitmasks: [32],
 		name: 'Bus',
 		short: 'B',
-		default: true
+		default: false
 	},
 	{
 		id: 'ferry',
@@ -56,7 +56,7 @@ module.exports = [
 		bitmasks: [64],
 		name: 'Ferry',
 		short: 'F',
-		default: true
+		default: false
 	},
 	{
 		id: 'subway',
@@ -64,7 +64,7 @@ module.exports = [
 		bitmasks: [128],
 		name: 'U-Bahn',
 		short: 'U',
-		default: true
+		default: false
 	},
 	{
 		id: 'tram',
@@ -72,7 +72,7 @@ module.exports = [
 		bitmasks: [256],
 		name: 'Tram',
 		short: 'T',
-		default: true
+		default: false
 	},
 	{
 		id: 'taxi',
@@ -80,6 +80,6 @@ module.exports = [
 		bitmasks: [512],
 		name: 'Group Taxi',
 		short: 'Taxi',
-		default: true
+		default: false
 	}
 ]

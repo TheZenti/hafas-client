@@ -56,8 +56,8 @@ const createParseJourneyLeg = (profile, opt, data) => {
 		const res = {
 			origin: clone(locations[parseInt(pt.dep.locX)]) || null,
 			destination: clone(locations[parseInt(pt.arr.locX)]),
-			departure: dep.toISOString(),
-			arrival: arr.toISOString()
+			departure: dep,
+			arrival: arr
 		}
 
 		// todo: DRY with parseDeparture
@@ -134,7 +134,7 @@ const createParseJourneyLeg = (profile, opt, data) => {
 					// todo: expose a.stopL[0]
 					return {
 						line: lines[parseInt(a.prodX)] || null,
-						when: when.toISOString()
+						when: when
 					}
 				}
 				res.alternatives = freq.jnyL.map(parseAlternative)
@@ -149,12 +149,12 @@ const createParseJourneyLeg = (profile, opt, data) => {
 			if (pt.arr.aCncl) {
 				res.arrival = res.arrivalPlatform = res.arrivalDelay = null
 				const arr = profile.parseDateTime(profile, j.date, pt.arr.aTimeS)
-				res.formerScheduledArrival = arr.toISOString()
+				res.formerScheduledArrival = arr
 			}
 			if (pt.dep.dCncl) {
 				res.departure = res.departurePlatform = res.departureDelay = null
 				const dep = profile.parseDateTime(profile, j.date, pt.dep.dTimeS)
-				res.formerScheduledDeparture = dep.toISOString()
+				res.formerScheduledDeparture = dep
 			}
 		}
 

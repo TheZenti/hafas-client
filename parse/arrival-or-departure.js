@@ -16,7 +16,7 @@ const createParseArrOrDep = (profile, opt, data, prefix) => {
 		const res = {
 			tripId: d.jid,
 			stop: locations[parseInt(d.stbStop.locX)] || null,
-			when: when.toISOString(),
+			when: when,
 			direction: profile.parseStationName(d.dirTxt),
 			line: lines[parseInt(d.prodX)] || null,
 			remarks: [],
@@ -49,7 +49,7 @@ const createParseArrOrDep = (profile, opt, data, prefix) => {
 			res.when = res.delay = null
 
 			const when = profile.parseDateTime(profile, d.date, tP)
-			res.formerScheduledWhen = when.toISOString()
+			res.formerScheduledWhen = when
 		}
 
 		if (opt.remarks) {

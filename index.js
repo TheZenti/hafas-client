@@ -223,6 +223,7 @@ const createClient = (profile, userAgent, request = _request) => {
 					lines: d.lines,
 					hints: d.hints,
 					warnings: d.warnings,
+					loadFactors: d.loadFactors,
 					polylines: opt.polylines && d.common.polyL || []
 				})
 
@@ -282,6 +283,7 @@ const createClient = (profile, userAgent, request = _request) => {
 				lines: d.lines,
 				hints: d.hints,
 				warnings: d.warnings,
+				loadFactors: d.loadFactors,
 				polylines: opt.polylines && d.common.polyL || []
 			})
 			return parse(d.outConL[0])
@@ -411,6 +413,7 @@ const createClient = (profile, userAgent, request = _request) => {
 				lines: d.lines,
 				hints: d.hints,
 				warnings: d.warnings,
+				loadFactors: d.loadFactors,
 				polylines: opt.polyline && d.common.polyL || []
 			})
 
@@ -473,6 +476,7 @@ const createClient = (profile, userAgent, request = _request) => {
 				lines: d.lines,
 				hints: d.hints,
 				warnings: d.warnings,
+				loadFactors: d.loadFactors,
 				polylines: opt.polylines && d.common.polyL || []
 			})
 			return d.jnyL.map(parse)

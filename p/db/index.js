@@ -2,7 +2,9 @@
 
 const trim = require('lodash/trim')
 
+const _createParseArrOrDep = require('../../parse/arrival-or-departure')
 const _createParseJourney = require('../../parse/journey')
+const _createParseJourneyLeg = require('../../parse/journey-leg')
 const _createParseLine = require('../../parse/line')
 const _parseHint = require('../../parse/hint')
 const _formatStation = require('../../format/station')
@@ -96,19 +98,30 @@ const createParseJourney = (profile, opt, data) => {
 	return parseJourneyWithPrice
 }
 
-const _createParseArrOrDep = require('../../parse/arrival-or-departure')
+const createParseJourneyLeg = (profile, opt, data) => {
+	const parseJourneyLeg = _createParseJourneyLeg(profile, opt, data)
+	const { loadFactors } = data
+	const parseJourneyLegWithLoadFactor = (j, pt, parseStopovers) => {
+		const result = parseJourneyLeg(j, pt, parseStopovers)
+		if (pt.jny.dTrnCmpSX && Array.isArray(pt.jny.dTrnCmpSX.tcocX)) {
+			result.loadFactors = pt.jny.dTrnCmpSX.tcocX.map(i => loadFactors[i])
+		}
+		return result
+	}
+	return parseJourneyLegWithLoadFactor
+}
 
 const createParseArrOrDep = (profile, opt, data, arrOrDep) => {
 	const parseArrOrDep = _createParseArrOrDep(profile, opt, data, arrOrDep)
 	const { loadFactors } = data
-	const parseArrOrDepWithDemand = (d) => {
+	const parseArrOrDepWithLoadFactor = (d) => {
 		const result = parseArrOrDep(d)
 		if (d.stbStop.dTrnCmpSX && Array.isArray(d.stbStop.dTrnCmpSX.tcocX)) {
 			result.loadFactors = d.stbStop.dTrnCmpSX.tcocX.map(i => loadFactors[i])
 		}
 		return result
 	};
-	return parseArrOrDepWithDemand
+	return parseArrOrDepWithLoadFactor
 };
 
 const createParseDeparture = (profile, opt, data) => {
@@ -354,10 +367,11 @@ const dbProfile = {
 	products: products,
 
 	// todo: parseLocation
-	parseJourney: createParseJourney,
-	parseLine: createParseLine,
-	parseDeparture: createParseDeparture,
 	parseArrival: createParseArrival,
+	parseDeparture: createParseDeparture,
+	parseJourney: createParseJourney,
+	parseJourneyLeg: createParseJourneyLeg,
+	parseLine: createParseLine,
 	parseHint,
 
 	formatStation,

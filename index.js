@@ -92,7 +92,8 @@ const createClient = (profile, userAgent, request = _request) => {
 				locations: d.locations,
 				lines: d.lines,
 				hints: d.hints,
-				warnings: d.warnings
+				warnings: d.warnings,
+				loadFactors: d.loadFactors
 			})
 			return d.jnyL.map(parse)
 			.sort((a, b) => new Date(a.when) - new Date(b.when))

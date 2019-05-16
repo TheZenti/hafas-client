@@ -13,7 +13,7 @@ const formatLoyaltyCard = require('./loyalty-cards').format
 
 const transformReqBody = (body) => {
 	body.client = {id: 'DB', v: '16040000', type: 'IPH', name: 'DB Navigator'}
-	body.ext = 'DB.R18.06.a'
+	body.ext = 'DB.R19.04.a'
 	body.ver = '1.16'
 	body.auth = {type: 'AID', aid: 'n91dB8Z77MLdoR0K'}
 
@@ -94,6 +94,29 @@ const createParseJourney = (profile, opt, data) => {
 	}
 
 	return parseJourneyWithPrice
+}
+
+const _createParseArrOrDep = require('../../parse/arrival-or-departure')
+
+const createParseArrOrDep = (profile, opt, data, arrOrDep) => {
+	const parseArrOrDep = _createParseArrOrDep(profile, opt, data, arrOrDep)
+	const { loadFactors } = data
+	const parseArrOrDepWithDemand = (d) => {
+		const result = parseArrOrDep(d)
+		if (d.stbStop.dTrnCmpSX && Array.isArray(d.stbStop.dTrnCmpSX.tcocX)) {
+			result.loadFactors = d.stbStop.dTrnCmpSX.tcocX.map(i => loadFactors[i])
+		}
+		return result
+	};
+	return parseArrOrDepWithDemand
+};
+
+const createParseDeparture = (profile, opt, data) => {
+	return createParseArrOrDep(profile, opt, data, 'd')
+}
+
+const createParseArrival = (profile, opt, data) => {
+	return createParseArrOrDep(profile, opt, data, 'a')
 }
 
 const hintsByCode = Object.assign(Object.create(null), {
@@ -333,6 +356,8 @@ const dbProfile = {
 	// todo: parseLocation
 	parseJourney: createParseJourney,
 	parseLine: createParseLine,
+	parseDeparture: createParseDeparture,
+	parseArrival: createParseArrival,
 	parseHint,
 
 	formatStation,

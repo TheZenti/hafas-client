@@ -103,7 +103,7 @@ const createParseJourneyLeg = (profile, opt, data) => {
 	const { loadFactors } = data
 	const parseJourneyLegWithLoadFactor = (j, pt, parseStopovers) => {
 		const result = parseJourneyLeg(j, pt, parseStopovers)
-		if (pt.jny.dTrnCmpSX && Array.isArray(pt.jny.dTrnCmpSX.tcocX)) {
+		if (pt.jny && pt.jny.dTrnCmpSX && Array.isArray(pt.jny.dTrnCmpSX.tcocX)) {
 			result.loadFactors = pt.jny.dTrnCmpSX.tcocX.map(i => loadFactors[i])
 		}
 		return result

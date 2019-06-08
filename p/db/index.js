@@ -30,9 +30,15 @@ loadFactors[2] = 'high'
 loadFactors[3] = 'very-high'
 loadFactors[4] = 'exceptionally-high'
 
+const cls = []
+cls['FIRST'] = 1
+cls['SECOND'] = 2
+
 const parseLoadFactor = (opt, tcocL, tcocX) => {
-	const cls = opt.firstClass ? 'FIRST' : 'SECOND'
-	const load = tcocX.map(i => tcocL[i]).map(l => loadFactors[l.r])
+	const load = tcocX.map(i => tcocL[i]).map(l => ({
+		class: cls[l.c],
+		loadFactor: loadFactors[l.r]
+	}))
 	return load || null
 }
 

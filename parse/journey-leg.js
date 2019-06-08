@@ -56,7 +56,7 @@ const createParseJourneyLeg = (profile, opt, data) => {
 			destination: clone(locations[parseInt(pt.arr.locX)]),
 			departure: dep,
 			arrival: arr,
-			reachable: !!pt.jny.isRchbl
+			reachable: pt.jny ? !!pt.jny.isRchbl : null,
 		}
 
 		// todo: DRY with parseDeparture

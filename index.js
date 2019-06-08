@@ -89,6 +89,7 @@ const createClient = (profile, userAgent, request = _request) => {
 		.then((d) => {
 			if (!Array.isArray(d.jnyL)) return []
 			const parse = parser(profile, opt, {
+				raw: d,
 				locations: d.locations,
 				lines: d.lines,
 				hints: d.hints,
@@ -219,6 +220,7 @@ const createClient = (profile, userAgent, request = _request) => {
 				if (!Array.isArray(d.outConL)) return []
 
 				const parse = profile.parseJourney(profile, opt, {
+					raw: d,
 					locations: d.locations,
 					lines: d.lines,
 					hints: d.hints,
@@ -279,6 +281,7 @@ const createClient = (profile, userAgent, request = _request) => {
 			}
 
 			const parse = profile.parseJourney(profile, opt, {
+				raw: d,
 				locations: d.locations,
 				lines: d.lines,
 				hints: d.hints,
@@ -409,6 +412,7 @@ const createClient = (profile, userAgent, request = _request) => {
 		})
 		.then((d) => {
 			const parse = profile.parseJourneyLeg(profile, opt, {
+				raw: d,
 				locations: d.locations,
 				lines: d.lines,
 				hints: d.hints,

@@ -1,5 +1,21 @@
 # Changelog
 
+## `4.2.0`
+
+- 6da1e80 add `leg.reachable`
+
+## `4.1.1`
+
+- 875ea18 parse scheduled/actual platform information on legs, fixes #116 🐛
+- f92e933 [DB](../p/db) departures/arrivals: parse load factor #112
+
+## `4.1.0`
+
+- 831bcaf ISO date+time: suppress milliseconds if 0
+- 3e01303/75432fc CFG profile
+- 820f2ab `parseWarning`: parse products
+- 3ab099b/57c7186 HVV profile
+
 ## `4.0.3`
 
 - 6aa57d4 `parseJourneyLeg`/`parseMovement`/`parseArrival`/`parseDeparture`: handle missing `dirTxt` 🐛

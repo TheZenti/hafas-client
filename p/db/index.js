@@ -2,7 +2,8 @@
 
 const trim = require('lodash/trim')
 
-const _createParseArrOrDep = require('../../parse/arrival-or-departure')
+const _createParseArrival = require('../../parse/arrival')
+const _createParseDeparture = require('../../parse/departure')
 const _createParseJourney = require('../../parse/journey')
 const _createParseJourneyLeg = require('../../parse/journey-leg')
 const _createParseLine = require('../../parse/line')
@@ -21,6 +22,36 @@ const transformReqBody = (body) => {
 
 	return body
 }
+
+// https://www.bahn.de/p/view/service/buchung/auslastungsinformation.shtml
+const loadFactors = []
+loadFactors[1] = 'low-to-medium'
+loadFactors[2] = 'high'
+loadFactors[3] = 'very-high'
+loadFactors[4] = 'exceptionally-high'
+
+const parseLoadFactor = (opt, tcocL, tcocX) => {
+	const cls = opt.firstClass ? 'FIRST' : 'SECOND'
+	const load = tcocX.map(i => tcocL[i]).map(l => loadFactors[l.r])
+	return load || null
+}
+
+const createParseArrOrDep = (createParse) => (profile, opt, data) => {
+	const parse = createParse(profile, opt, data)
+	const parseWithLoadFactor = (d) => {
+		const result = parse(d)
+		if (d.stbStop.dTrnCmpSX && Array.isArray(d.stbStop.dTrnCmpSX.tcocX)) {
+			const {tcocL} = data.raw.common
+			const load = parseLoadFactor(opt, tcocL, d.stbStop.dTrnCmpSX.tcocX)
+			if (load) result.loadFactor = load
+		}
+		return result
+	}
+	return parseWithLoadFactor
+}
+
+const createParseArrival = createParseArrOrDep(_createParseArrival)
+const createParseDeparture = createParseArrOrDep(_createParseDeparture)
 
 const transformJourneysQuery = (query, opt) => {
 	const filters = query.jnyFltrL
@@ -100,36 +131,16 @@ const createParseJourney = (profile, opt, data) => {
 
 const createParseJourneyLeg = (profile, opt, data) => {
 	const parseJourneyLeg = _createParseJourneyLeg(profile, opt, data)
-	const { loadFactors } = data
 	const parseJourneyLegWithLoadFactor = (j, pt, parseStopovers) => {
 		const result = parseJourneyLeg(j, pt, parseStopovers)
 		if (pt.jny && pt.jny.dTrnCmpSX && Array.isArray(pt.jny.dTrnCmpSX.tcocX)) {
-			result.loadFactors = pt.jny.dTrnCmpSX.tcocX.map(i => loadFactors[i])
+			const {tcocL} = data.raw.common
+			const load = parseLoadFactor(opt, tcocL, pt.jny.dTrnCmpSX.tcocX)
+			if (load) result.loadFactor = load
 		}
 		return result
 	}
 	return parseJourneyLegWithLoadFactor
-}
-
-const createParseArrOrDep = (profile, opt, data, arrOrDep) => {
-	const parseArrOrDep = _createParseArrOrDep(profile, opt, data, arrOrDep)
-	const { loadFactors } = data
-	const parseArrOrDepWithLoadFactor = (d) => {
-		const result = parseArrOrDep(d)
-		if (d.stbStop.dTrnCmpSX && Array.isArray(d.stbStop.dTrnCmpSX.tcocX)) {
-			result.loadFactors = d.stbStop.dTrnCmpSX.tcocX.map(i => loadFactors[i])
-		}
-		return result
-	};
-	return parseArrOrDepWithLoadFactor
-};
-
-const createParseDeparture = (profile, opt, data) => {
-	return createParseArrOrDep(profile, opt, data, 'd')
-}
-
-const createParseArrival = (profile, opt, data) => {
-	return createParseArrOrDep(profile, opt, data, 'a')
 }
 
 const hintsByCode = Object.assign(Object.create(null), {

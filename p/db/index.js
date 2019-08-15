@@ -37,7 +37,7 @@ cls['SECOND'] = 2
 const parseLoadFactor = (opt, tcocL, tcocX) => {
 	const load = tcocX.map(i => tcocL[i]).map(l => ({
 		class: cls[l.c],
-		loadFactor: loadFactors[l.r]
+		loadFactor: l.r
 	}))
 	return load || null
 }

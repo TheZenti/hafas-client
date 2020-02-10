@@ -48,7 +48,7 @@ With `opt`, you can override the default options, which look like this:
 	earlierThan: null, // ref to get journeys earlier than the last query
 	laterThan: null, // ref to get journeys later than the last query
 
-	results: 5, // how many journeys?
+	results: null, // number of journeys – `null` means "whatever HAFAS returns"
 	via: null, // let journeys pass this station
 	stopovers: false, // return stations on the way?
 	transfers: -1, // Maximum nr of transfers. Default: Let HAFAS decide.
@@ -69,6 +69,7 @@ With `opt`, you can override the default options, which look like this:
 	polylines: false, // return a shape for each leg?
 	remarks: true, // parse & expose hints & warnings?
 	// Consider walking to nearby stations at the beginning of a journey?
+	walkingSpeed: 'normal', // 'slow', 'normal', 'fast'
 	startWithWalking: true,
 	language: 'en', // language to get results in
 	scheduledDays: false // parse which days each journey is valid on
@@ -103,42 +104,7 @@ The `Promise` returned by `journeys()` will resolve with an object with the `jou
 	journeys: [ {
 		legs: [ {
 			tripId: '1|32615|6|86|10072018',
-			origin: {
-				type: 'station',
-				id: '900000003201',
-				name: 'S+U Berlin Hauptbahnhof',
-				location: {
-					type: 'location',
-					latitude: 52.52585,
-					longitude: 13.368928
-				},
-				products: {
-					suburban: true,
-					subway: true,
-					tram: true,
-					bus: true,
-					ferry: false,
-					express: true,
-					regional: true
-				}
-			},
-			destination: {
-				type: 'station',
-				id: '900000100004',
-				name: 'S+U Jannowitzbrücke',
-				location: {
-					type: 'location',
-					latitude: 52.504806,
-					longitude: 13.303846
-				},
-				products: { /* … */ }
-			},
-			departure: '2018-07-10T23:54:00+02:00',
-			departureDelay: 60,
-			departurePlatform: '15',
-			arrival: '2018-07-11T00:02:00+02:00',
-			arrivalDelay: 60,
-			arrivalPlatform: '3',
+			direction: 'S Ahrensfelde',
 			line: {
 				type: 'line',
 				id: '16845',
@@ -158,18 +124,66 @@ The `Promise` returned by `journeys()` will resolve with an object with the `jou
 				express: false,
 				night: false
 			},
-			direction: 'S Ahrensfelde',
+
+			origin: {
+				type: 'station',
+				id: '900000003201',
+				name: 'S+U Berlin Hauptbahnhof',
+				location: {
+					type: 'location',
+					latitude: 52.52585,
+					longitude: 13.368928
+				},
+				products: {
+					suburban: true,
+					subway: true,
+					tram: true,
+					bus: true,
+					ferry: false,
+					express: true,
+					regional: true
+				}
+			},
+			departure: '2018-07-10T23:54:00+02:00',
+			plannedDeparture: '2018-07-10T23:53:00+02:00',
+			departureDelay: 60,
+			departurePlatform: '15',
+			plannedDeparturePlatform: '14',
+
+			destination: {
+				type: 'station',
+				id: '900000100004',
+				name: 'S+U Jannowitzbrücke',
+				location: {
+					type: 'location',
+					latitude: 52.504806,
+					longitude: 13.303846
+				},
+				products: { /* … */ }
+			},
+			arrival: '2018-07-11T00:02:00+02:00',
+			plannedArrival: '2018-07-11T00:01:00+02:00',
+			arrivalDelay: 60,
+			arrivalPlatform: '3',
+			plannedArrivalPlatform: '3',
+
 			stopovers: [ {
 				stop: {
 					type: 'station',
 					id: '900000003201',
 					name: 'S+U Berlin Hauptbahnhof',
-					location: { /* … */ },
-					products: { /* … */ }
+					/* … */
 				},
+
 				arrival: null,
+				plannedArrival: null,
+				arrivalPlatform: null,
+				plannedArrivalPlatform: null,
 				departure: null,
-				cancelled: true,
+				plannedDeparture: null,
+				departurePlatform: null,
+				plannedDeparturePlatform: null,
+
 				remarks: [
 					{type: 'hint', code: 'bf', text: 'barrier-free'},
 					{type: 'hint', code: 'FB', text: 'Bicycle conveyance'}
@@ -179,34 +193,54 @@ The `Promise` returned by `journeys()` will resolve with an object with the `jou
 					type: 'station',
 					id: '900000100001',
 					name: 'S+U Friedrichstr.',
-					location: { /* … */ },
-					products: { /* … */ }
+					/* … */
 				},
-				arrival: '2018-07-10T23:56:00+02:00',
+
+				cancelled: true,
+				arrival: null,
+				plannedArrival: '2018-07-10T23:55:00+02:00',
+				prognosedArrival: '2018-07-10T23:56:00+02:00',
 				arrivalDelay: 60,
 				arrivalPlatform: null,
-				departure: '2018-07-10T23:57:00+02:00',
+				plannedArrivalPlatform: null,
+
+				departure: null,
+				plannedDeparture: '2018-07-10T23:56:00+02:00',
+				prognosedDeparture: '2018-07-10T23:57:00+02:00',
 				departureDelay: 60,
 				departurePlatform: null,
+				plannedDeparturePlatform: null,
+
 				remarks: [ /* … */ ]
 			},
 			/* … */
 			{
+				stop: {
 					type: 'station',
 					id: '900000100004',
 					name: 'S+U Jannowitzbrücke',
-					location: { /* … */ },
-					products: { /* … */ }
+					/* … */
 				},
+
 				arrival: '2018-07-11T00:02:00+02:00',
+				plannedArrival: '2018-07-11T00:01:00+02:00',
 				arrivalDelay: 60,
 				arrivalPlatform: null,
+				plannedArrivalPlatform: null,
+
 				departure: '2018-07-11T00:02:00+02:00',
+				plannedDeparture: '2018-07-11T00:02:00+02:00',
 				departureDelay: null,
 				departurePlatform: null,
+				plannedDeparturePlatform: null,
+
 				remarks: [ /* … */ ]
 			} ]
 		}, {
+			public: true,
+			walking: true,
+			distance: 558,
+
 			origin: {
 				type: 'station',
 				id: '900000100004',
@@ -214,6 +248,8 @@ The `Promise` returned by `journeys()` will resolve with an object with the `jou
 				location: { /* … */ },
 				products: { /* … */ }
 			},
+			departure: '2018-07-11T00:01:00+02:00',
+
 			destination: {
 				type: 'station',
 				id: '900000100008',
@@ -221,11 +257,7 @@ The `Promise` returned by `journeys()` will resolve with an object with the `jou
 				location: { /* … */ },
 				products: { /* … */ }
 			},
-			departure: '2018-07-11T00:01:00+02:00',
-			arrival: '2018-07-11T00:10:00+02:00',
-			public: true,
-			walking: true,
-			distance: 558
+			arrival: '2018-07-11T00:10:00+02:00'
 		} ]
 	} ],
 	earlierRef: '…', // use with the `earlierThan` option
@@ -302,7 +334,7 @@ departure of first (later) journey 2017-12-17T19:19:00+01:00
 
 If you pass `polylines: true`, each journey leg will have a `polyline` field. Refer to [the section in the `trip()` docs](trip.md#polyline-option) for details.
 
-If you pass `scheduledDays: true`, each journey will have a `scheduledDays` field looking like this:
+If you pass `scheduledDays: true`, each journey will have a `scheduledDays` object looking like this:
 
 ```js
 {

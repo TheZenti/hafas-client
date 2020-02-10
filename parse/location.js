@@ -9,7 +9,9 @@ const ADDRESS = 'A'
 const leadingZeros = /^0+/
 
 // todo: what is s.rRefL?
-const parseLocation = (profile, opt, {lines}, l) => {
+const parseLocation = (ctx, l) => {
+	const {profile, opt} = ctx
+
 	const lid = parse(l.lid, {delimiter: '@'})
 	const res = {
 		type: 'location',
@@ -25,23 +27,15 @@ const parseLocation = (profile, opt, {lines}, l) => {
 		const stop = {
 			type: l.isMainMast ? 'station' : 'stop',
 			id: res.id,
-			name: l.name || id.O ? profile.parseStationName(l.name || id.O) : null,
+			name: l.name || id.O ? profile.parseStationName(ctx, l.name || id.O) : null,
 			location: 'number' === typeof res.latitude ? res : null // todo: remove `.id`
 		}
 
-		if ('pCls' in l) stop.products = profile.parseProducts(l.pCls)
+		if ('pCls' in l) stop.products = profile.parseProductsBitmask(ctx, l.pCls)
 		if ('meta' in l) stop.isMeta = !!l.meta
 
-		if (
-			opt.linesOfStops &&
-			Array.isArray(l.pRefL) &&
-			Array.isArray(lines)
-		) {
-			stop.lines = []
-			for (let pRef of l.pRefL) {
-				const line = lines[pRef]
-				if (line) stop.lines.push(line)
-			}
+		if (opt.linesOfStops && Array.isArray(l.lines)) {
+			stop.lines = l.lines
 		}
 
 		return stop

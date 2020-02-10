@@ -47,6 +47,7 @@ The response may look like this:
 		latitude: 52.521508,
 		longitude: 13.411267
 	},
+
 	line: {
 		type: 'line',
 		id: 's9',
@@ -68,6 +69,7 @@ The response may look like this:
 	},
 	direction: 'S Flughafen Berlin-Schönefeld',
 	trip: 31463,
+
 	nextStopovers: [ {
 		stop: {
 			type: 'stop',
@@ -89,9 +91,15 @@ The response may look like this:
 			}
 		},
 		arrival: null,
+		plannedArrival: null,
 		arrivalDelay: null,
-		departure: '2017-12-17T19:16:00+01:00',
-		departureDelay: null
+		arrivalPlatform: null,
+		plannedArrivalPlatform: null,
+		departure: null,
+		plannedDeparture: '2017-12-17T19:16:00+01:00',
+		departureDelay: null,
+		departurePlatform: null,
+		plannedDeparturePlatform: '1'
 	} /* … */ ],
 	frames: [ {
 		origin: {
@@ -144,15 +152,23 @@ The response may look like this:
 	nextStopovers: [ {
 		stop: { /* S+U Alexanderplatz/Dircksenstr. */ },
 		arrival: null,
+		plannedArrival: null,
 		arrivalDelay: null,
-		departure: '2017-12-17T19:52:00+01:00',
+		departure: null,
+		plannedAeparture: '2017-12-17T19:52:00+01:00',
 		departureDelay: null
 	}, {
 		stop: { /* Memhardstr. */ },
-		arrival: '2017-12-17T19:54:00+01:00',
+		arrival: null,
+		plannedArrival: '2017-12-17T19:54:00+01:00',
 		arrivalDelay: null,
-		departure: '2017-12-17T19:54:00+01:00',
-		departureDelay: null
+		arrivalPlatform: null,
+		plannedArrivalPlatform: null,
+		departure: null,
+		plannedDeparture: '2017-12-17T19:54:00+01:00',
+		departureDelay: null,
+		departurePlatform: null,
+		plannedDeparturePlatform: '1'
 	}, /* … */ ],
 	frames: [ {
 		origin: { /* S+U Alexanderplatz/Dircksenstr. */ },

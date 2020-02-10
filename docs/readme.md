@@ -13,21 +13,20 @@
 
 ## Migrating from an old `hafas-client` version
 
-- [`2` → `3` migration guide](migrating-to-3.md)
 - [`3` → `4` migration guide](migrating-to-4.md)
+- [`4` → `5` migration guide](migrating-to-5.md)
 
 ## Throttling requests
 
 There's opt-in support for throttling requests to the endpoint.
 
 ```js
-const withThrottling = require('hafas-client/throttle')
 const createClient = require('hafas-client')
+const withThrottling = require('hafas-client/throttle')
 const dbProfile = require('hafas-client/p/db')
 
 // create a throttled HAFAS client with Deutsche Bahn profile
-const createThrottledClient = withThrottling(createClient)
-const client = createThrottledClient(dbProfile, 'my-awesome-program')
+const client = createClient(withThrottling(dbProfile), 'my-awesome-program')
 
 // Berlin Jungfernheide to München Hbf
 client.journeys('8011167', '8000261', {results: 1})
@@ -39,8 +38,8 @@ You can pass custom values for the nr of requests (`limit`) per interval into `w
 
 ```js
 // 2 requests per second
-const createThrottledClient = withThrottling(createClient, 2, 1000)
-const client = createThrottledClient(dbProfile, 'my-awesome-program')
+const throttledDbProfile = withThrottling(dbProfile, 2, 1000)
+const client = createClient(throttledDbProfile, 'my-awesome-program')
 ```
 
 ## Retrying failed requests
@@ -48,13 +47,12 @@ const client = createThrottledClient(dbProfile, 'my-awesome-program')
 There's opt-in support for retrying failed requests to the endpoint.
 
 ```js
-const withRetrying = require('hafas-client/retry')
 const createClient = require('hafas-client')
+const withRetrying = require('hafas-client/retry')
 const dbProfile = require('hafas-client/p/db')
 
 // create a client with Deutsche Bahn profile that will retry on HAFAS errors
-const createRetryingClient = withRetrying(createClient)
-const client = createRetryingClient(dbProfile, 'my-awesome-program')
+const client = createClient(withRetrying(dbProfile), 'my-awesome-program')
 
 // Berlin Jungfernheide to München Hbf
 client.journeys('8011167', '8000261', {results: 1})
@@ -66,14 +64,18 @@ You can pass custom options into `withRetrying`. They will be passed into [`retr
 
 ```js
 // retry 2 times, after 10 seconds & 30 seconds
-const createRetryingClient = withRetrying(createClient, {
+const retryingDbProfile = withRetrying(dbProfile, {
 	retries: 2,
 	minTimeout: 10 * 1000,
 	factor: 3
 })
-const client = createRetryingClient(dbProfile, 'my-awesome-program')
+const client = createClient(retryingDbProfile, 'my-awesome-program')
 ```
 
 ## Writing a profile
 
 Check [the guide](writing-a-profile.md).
+
+## General documentation for `mgate.exe` APIs
+
+[`hafas-mgate-api.md`](hafas-mgate-api.md)

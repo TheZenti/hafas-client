@@ -1,6 +1,8 @@
 'use strict'
 
-const findRemark = require('./find-remark')
+const parseWhen = require('./when')
+const parsePlatform = require('./platform')
+const findRemarks = require('./find-remarks')
 
 const ARRIVAL = 'a'
 const DEPARTURE = 'd'
@@ -8,61 +10,47 @@ const DEPARTURE = 'd'
 // todo: what is d.jny.dirFlg?
 // todo: d.stbStop.dProgType/d.stbStop.aProgType
 
-const createParseArrOrDep = (profile, opt, data, prefix) => {
-	const {locations, lines, hints, warnings} = data
+const createParseArrOrDep = (prefix) => {
 	if (prefix !== ARRIVAL && prefix !== DEPARTURE) throw new Error('invalid prefix')
 
-	const parseArrOrDep = (d) => {
-		const t = d.stbStop[prefix + 'TimeR'] || d.stbStop[prefix + 'TimeS']
-		const tz = d.stbStop[prefix + 'TZOffset'] || null
+	const parseArrOrDep = (ctx, d) => { // d = raw arrival/departure
+		const {profile, opt} = ctx
+
+		const tPlanned = d.stbStop[prefix + 'TimeS']
+		const tPrognosed = d.stbStop[prefix + 'TimeR']
+		const tzOffset = d.stbStop[prefix + 'TZOffset'] || null
+		const cancelled = !!d.stbStop[prefix + 'Cncl']
+		const plPlanned = d.stbStop[prefix + 'PlatfS']
+		const plPrognosed = d.stbStop[prefix + 'PlatfR']
 
 		const res = {
 			tripId: d.jid,
-			stop: locations[parseInt(d.stbStop.locX)] || null,
-			when: profile.parseDateTime(profile, d.date, t, tz),
+			stop: d.stbStop.location || null,
+			...profile.parseWhen(ctx, d.date, tPlanned, tPrognosed, tzOffset, cancelled),
+			...profile.parsePlatform(ctx, plPlanned, plPrognosed, cancelled),
 			// todo: for arrivals, this is the *origin*, not the *direction*
-			direction: d.dirTxt && profile.parseStationName(d.dirTxt) || null,
-			line: lines[parseInt(d.prodX)] || null,
+			direction: d.dirTxt && profile.parseStationName(ctx, d.dirTxt) || null,
+			line: d.line || null,
 			remarks: []
 		}
 
-		// todo: DRY with parseStopover
-		// todo: DRY with parseJourneyLeg
-		const tR = d.stbStop[prefix + 'TimeR']
-		const tP = d.stbStop[prefix + 'TimeS']
-		if (tR && tP) {
-			const realtime = profile.parseDateTime(profile, d.date, tR, tz, true)
-			const planned = profile.parseDateTime(profile, d.date, tP, tz, true)
-			res.delay = Math.round((realtime - planned) / 1000)
-		} else res.delay = null
-
-		// todo: DRY with parseStopover
-		// todo: DRY with parseJourneyLeg
-		const pR = d.stbStop[prefix + 'PlatfR']
-		const pP = d.stbStop[prefix + 'PlatfS']
-		res.platform = pR || pP || null
-		if (pR && pP && pR !== pP) res.scheduledPlatform = pP
-
-		// todo: DRY with parseStopover
-		// todo: DRY with parseJourneyLeg
-		if (d.stbStop[prefix + 'Cncl']) {
+		if (cancelled) {
 			res.cancelled = true
 			Object.defineProperty(res, 'canceled', {value: true})
-			res.when = res.delay = null
-			res.scheduledWhen = profile.parseDateTime(profile, d.date, tP, tz)
 		}
 
 		if (opt.remarks) {
-			res.remarks = []
-			.concat(d.remL || [], d.msgL || [])
-			.map(ref => findRemark(hints, warnings, ref))
-			.filter(rem => !!rem) // filter unparsable
+			res.remarks = findRemarks([
+				...(d.remL || []),
+				...(d.msgL || [])
+			]).map(([remark]) => remark)
 		}
 
    		if (opt.stopovers && Array.isArray(d.stopL)) {
-  			const parse = profile.parseStopover(profile, opt, data, d.date)
   			// Filter stations the train passes without stopping, as this doesn't comply with FPTF (yet).
-  			const stopovers = d.stopL.map(parse).filter(st => !st.passBy)
+  			const stopovers = d.stopL
+  			.map(st => profile.parseStopover(ctx, st, d.date))
+  			.filter(st => !st.passBy)
   			if (prefix === ARRIVAL) res.previousStopovers = stopovers
 			else if (prefix === DEPARTURE) res.nextStopovers = stopovers
   		}

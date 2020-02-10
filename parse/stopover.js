@@ -1,88 +1,49 @@
 'use strict'
 
-const findRemark = require('./find-remark')
+const parseWhen = require('./when')
+const parsePlatform = require('./platform')
+const findRemarks = require('./find-remarks')
 
-const createParseStopover = (profile, opt, data, date) => {
-	const {locations, lines, hints, warnings} = data
+const parseStopover = (ctx, st, date) => { // st = raw stopover
+	const {profile, opt} = ctx
 
-	const parseStopover = (st) => {
-		const res = {
-			stop: locations[parseInt(st.locX)] || null,
-			arrival: null,
-			arrivalDelay: null,
-			arrivalPlatform: st.aPlatfR || st.aPlatfS || null,
-			departure: null,
-			departureDelay: null,
-			departurePlatform: st.dPlatfR || st.dPlatfS || null
-		}
+	const arr = profile.parseWhen(ctx, date, st.aTimeS, st.aTimeR, st.aTZOffset, st.aCncl)
+	const arrPl = profile.parsePlatform(ctx, st.aPlatfS, st.aPlatfR, st.aCncl)
+	const dep = profile.parseWhen(ctx, date, st.dTimeS, st.dTimeR, st.dTZOffset, st.dCncl)
+	const depPl = profile.parsePlatform(ctx, st.dPlatfS, st.dPlatfR, st.dCncl)
 
-		// todo: DRY with parseDeparture
-		// todo: DRY with parseJourneyLeg
-		if (st.aTimeR || st.aTimeS) {
-			const arr = profile.parseDateTime(profile, date, st.aTimeR || st.aTimeS, st.aTZOffset)
-			res.arrival = arr
-		}
-		if (st.aTimeR && st.aTimeS) {
-			const realtime = profile.parseDateTime(profile, date, st.aTimeR, st.aTZOffset, true)
-			const planned = profile.parseDateTime(profile, date, st.aTimeS, st.aTZOffset, true)
-			res.arrivalDelay = Math.round((realtime - planned) / 1000)
-		}
-
-		if (st.dTimeR || st.dTimeS) {
-			const dep = profile.parseDateTime(profile, date, st.dTimeR || st.dTimeS, st.dTZOffset)
-			res.departure = dep
-		}
-		if (st.dTimeR && st.dTimeS) {
-			const realtime = profile.parseDateTime(profile, date, st.dTimeR, st.dTZOffset, true)
-			const planned = profile.parseDateTime(profile, date, st.dTimeS, st.dTZOffset, true)
-			res.departureDelay = Math.round((realtime - planned) / 1000)
-		}
-
-		if (st.aPlatfR && st.aPlatfS && st.aPlatfR !== st.aPlatfS) {
-			res.scheduledArrivalPlatform = st.aPlatfS
-		}
-		if (st.dPlatfR && st.dPlatfS && st.dPlatfR !== st.dPlatfS) {
-			res.scheduledDeparturePlatform = st.dPlatfS
-		}
-
-		// mark stations the train passes without stopping
-		if(st.dInS === false && st.aOutS === false) res.passBy = true
-
-		// todo: DRY with parseDeparture
-		// todo: DRY with parseJourneyLeg
-		if (st.aCncl || st.dCncl) {
-			res.cancelled = true
-			Object.defineProperty(res, 'canceled', {value: true})
-			if (st.aCncl) {
-				res.formerArrivalDelay = res.arrivalDelay
-				res.arrival = res.arrivalDelay = null
-				if (st.aTimeS) {
-					const arr = profile.parseDateTime(profile, date, st.aTimeS, st.aTZOffset)
-					res.scheduledArrival = arr
-				}
-			}
-			if (st.dCncl) {
-				res.formerDepartureDelay = res.departureDelay
-				res.departure = res.departureDelay = null
-				if (st.dTimeS) {
-					const arr = profile.parseDateTime(profile, date, st.dTimeS, st.dTZOffset)
-					res.scheduledDeparture = arr
-				}
-			}
-		}
-
-		if (opt.remarks && Array.isArray(st.msgL)) {
-			res.remarks = []
-			for (let ref of st.msgL) {
-				const remark = findRemark(hints, warnings, ref)
-				if (remark) res.remarks.push(remark)
-			}
-		}
-
-		return res
+	const res = {
+		stop: st.location || null,
+		arrival: arr.when,
+		plannedArrival: arr.plannedWhen,
+		arrivalDelay: arr.delay,
+		arrivalPlatform: arrPl.platform,
+		plannedArrivalPlatform: arrPl.plannedPlatform,
+		departure: dep.when,
+		plannedDeparture: dep.plannedWhen,
+		departureDelay: dep.delay,
+		departurePlatform: depPl.platform,
+		plannedDeparturePlatform: depPl.plannedPlatform
 	}
 
-	return parseStopover
+	if (arr.prognosedWhen) res.prognosedArrival = arr.prognosedWhen
+	if (arrPl.prognosedPlatform) res.prognosedArrivalPlatform = arrPl.prognosedPlatform
+	if (dep.prognosedWhen) res.prognosedDeparture = dep.prognosedWhen
+	if (depPl.prognosedPlatform) res.prognosedDeparturePlatform = depPl.prognosedPlatform
+
+	// mark stations the train passes without stopping
+	if(st.dInS === false && st.aOutS === false) res.passBy = true
+
+	if (st.aCncl || st.dCncl) {
+		res.cancelled = true
+		Object.defineProperty(res, 'canceled', {value: true})
+	}
+
+	if (opt.remarks && Array.isArray(st.msgL)) {
+		res.remarks = findRemarks(st.msgL).map(([remark]) => remark)
+	}
+
+	return res
 }
 
-module.exports = createParseStopover
+module.exports = parseStopover

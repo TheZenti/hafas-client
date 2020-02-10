@@ -1,14 +1,14 @@
 # Writing a profile
 
-**Per HAFAS endpoint, `hafas-client` has an endpoint-specific customisation called *profile***, which may for example do the following:
+**Per HAFAS endpoint, `hafas-client` has an endpoint-specific customisation called *profile*.** A profile may, for example, do the following:
 
 - handle the additional requirements of the endpoint (e.g. authentication),
 - extract additional information from the data provided by the endpoint,
 - guard against triggering bugs of certain endpoints (e.g. time limits).
 
-This guide is about writing such a profile. If you just want to use an already supported endpoint, refer to the [API documentation](readme.md) instead.
+This guide is about writing such a profile. If you just want to use an already supported endpoint, refer to the [main readme](../readme.md) instead.
 
-*Note*: **If you get stuck, ask for help by [creating an issue](https://github.com/public-transport/hafas-client/issues/new)!** We want to help people expand the scope of this library.
+*Note*: **If you get stuck, ask for help by [creating an issue](https://github.com/public-transport/hafas-client/issues/new)**; We're happy to help you expand the scope of this library!
 
 ## 0. How do the profiles work?
 
@@ -21,7 +21,7 @@ A profile may consist of three things:
 - **flags indicating which features are supported by the endpoint** – e.g. `trip`
 - **methods overriding the [default profile](../lib/default-profile.js)**
 
-As an example, let's say we have an [Austrian](https://en.wikipedia.org/wiki/Austria) endpoint:
+Let's use a fictional endpoint for [Austria](https://en.wikipedia.org/wiki/Austria) as an example:
 
 ```js
 const myProfile = {
@@ -31,28 +31,36 @@ const myProfile = {
 }
 ```
 
-Assuming their HAFAS endpoint returns all lines names prefixed with `foo `, We can strip them like this:
+Assuming their HAFAS endpoint returns all line names prefixed with `foo `, we can adapt our profile to clean them:
 
 ```js
 // get the default line parser
-const createParseLine = require('hafas-client/parse/line')
+const parseLine = require('hafas-client/parse/line')
 
-const createParseLineWithoutFoo = (profile, opt, data) => {
-	const parseLine = createParseLine(profile, opt, data)
-
-	// wrapper function with additional logic
-	const parseLineWithoutFoo = (l) => {
-		const line = parseLine(l)
-		line.name = line.name.replace(/foo /g, '')
-		return line
-	}
-	return parseLineWithoutFoo
+// wrapper function with additional logic
+const parseLineWithoutFoo = (ctx, rawLine) => {
+	const line = parseLine(ctx, rawLine)
+	line.name = line.name.replace(/foo /g, '')
+	return line
 }
 
-profile.parseLine = createParseLineWithoutFoo
+myProfile.parseLine = parseLineWithoutFoo
 ```
 
 If you pass this profile into `hafas-client`, the `parseLine` method will override [the default one](../parse/line.js).
+
+You can also use the `parseHook` helper to reduce boilerplate:
+
+```js
+const {parseHook} = require('hafas-client/lib/profile-hooks')
+
+const removeFoo = (ctx, rawLine) => ({
+	...ctx.parsed,
+	name: line.name.replace(/foo /g, '')
+})
+
+myProfile.parseLine = parseHook(parseLine, removeFoo)
+```
 
 ## 1. Setup
 
@@ -69,6 +77,8 @@ If you pass this profile into `hafas-client`, the `parseLine` method will overri
 
 ## 2. Basic profile
 
+*Note:* You should have read the [general documentation on `mgate.exe` APIs](hafas-mgate-api.md) to make sense of the terminology used below.
+
 You may want to start with the [profile boilerplate](profile-boilerplate.js).
 
 - **Identify the `endpoint`.** The protocol, host and path of the endpoint, *but not* the query string.
@@ -77,8 +87,8 @@ You may want to start with the [profile boilerplate](profile-boilerplate.js).
 - **Identify the `timezone`.** This may be tricky, a for example [Deutsche Bahn](https://en.wikipedia.org/wiki/Deutsche_Bahn) returns departures for Moscow as `+01:00` instead of `+03:00`.
 - **Copy the authentication** and other meta fields, namely `ver`, `ext`, `client` and `lang`.
 	- You can find these fields in the root of each request JSON. Check [a VBB request](https://gist.github.com/derhuerst/5fa86ed5aec63645e5ae37e23e555886#file-1-http-L13-L22) and [the corresponding VBB profile](https://github.com/public-transport/hafas-client/blob/6e61097687a37b60d53e767f2711466b80c5142c/p/vbb/index.js#L22-L29) for an example.
-	- Add a function `transformReqBody(body)` to your profile, which assigns them to `body`.
-	- Some profiles have a `checksum` parameter (like [here](https://gist.github.com/derhuerst/2a735268bd82a0a6779633f15dceba33#file-journey-details-1-http-L1)) or two `mic` & `mac` parameters (like [here](https://gist.github.com/derhuerst/5fa86ed5aec63645e5ae37e23e555886#file-1-http-L1)). If you see one of them in your requests, jump to [*Appendix A: checksum, mic, mac*](#appendix-a-checksum-mic-mac). Unfortunately, this is necessary to get the profile working.
+	- Add a function `transformReqBody(ctx, body)` to your profile, which adds the fields to `body`.
+	- Some profiles have a `checksum` parameter (like [here](https://gist.github.com/derhuerst/2a735268bd82a0a6779633f15dceba33#file-journey-details-1-http-L1)) or two `mic` & `mac` parameters (like [here](https://gist.github.com/derhuerst/5fa86ed5aec63645e5ae37e23e555886#file-1-http-L1)). If you see one of them in your requests, jump to the [*Authentication* section of the `mgate.exe` docs](hafas-mgate-api.md#authentication). Unfortunately, this is necessary to get the profile working.
 
 ## 3. Products
 
@@ -147,23 +157,3 @@ We consider these improvements to be *optional*:
 	- `Berlin Jungfernheide Bhf` -> `Berlin Jungfernheide`. With local context, it's obvious that *Jungfernheide* is a train station.
 - **Check if the endpoint has non-obvious limitations** and let use know about these. Examples:
 	- Some endpoints have a time limit, after which they won't return more departures, but silently discard them.
-
----
-
-## Appendix A: `checksum`, `mic`, `mac`
-
-As far as we know, there are three different types of authentication used among HAFAS deployments.
-
-### unprotected endpoints
-
-You can just query these, as long as you send a formally correct request.
-
-### endpoints using the `checksum` query parameter
-
-`checksum` is a [message authentication code](https://en.wikipedia.org/wiki/Message_authentication_code): `hafas-client` will compute it by [hashing](https://en.wikipedia.org/wiki/Hash_function) the request body and a secret *salt*. **This secret can be read from the config file inside the app bundle.** There is no guide for this yet, so please [open an issue](https://github.com/public-transport/hafas-client/issues/new) instead.
-
-### endpoints using the `mic` & `mac` query parameters
-
-`mic` is a [message integrity code](https://en.wikipedia.org/wiki/Message_authentication_code), the [hash](https://en.wikipedia.org/wiki/Hash_function) of the request body.
-
-`mac` is a [message authentication code](https://en.wikipedia.org/wiki/Message_authentication_code), the hash of `mic` and a secret *salt*. **This secret can be read from the config file inside the app bundle.** There is no guide for this yet, so please [open an issue](https://github.com/public-transport/hafas-client/issues/new) instead.

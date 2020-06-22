@@ -1,7 +1,5 @@
 'use strict'
 
-const tapePromise = require('tape-promise').default
-const tape = require('tape')
 const isRoughlyEqual = require('is-roughly-equal')
 
 const {createWhen} = require('./lib/util')
@@ -9,6 +7,7 @@ const createClient = require('../..')
 const hvvProfile = require('../../p/hvv')
 const products = require('../../p/hvv/products')
 const createValidate = require('./lib/validate-fptf-with')
+const {test} = require('./lib/util')
 const testJourneysStationToStation = require('./lib/journeys-station-to-station')
 const journeysFailsWithNoProduct = require('./lib/journeys-fails-with-no-product')
 const testJourneysStationToAddress = require('./lib/journeys-station-to-address')
@@ -17,8 +16,6 @@ const testEarlierLaterJourneys = require('./lib/earlier-later-journeys')
 const testDepartures = require('./lib/departures')
 const testDeparturesInDirection = require('./lib/departures-in-direction')
 const testArrivals = require('./lib/arrivals')
-
-const isObj = o => o !== null && 'object' === typeof o && !Array.isArray(o)
 
 const when = createWhen('Europe/Berlin', 'de-DE')
 
@@ -34,7 +31,6 @@ const cfg = {
 
 const validate = createValidate(cfg, {})
 
-const test = tapePromise(tape)
 const client = createClient(hvvProfile, 'public-transport/hafas-client:test')
 
 const tiefstack = '4117'
@@ -102,7 +98,7 @@ test('Hamburg Tiefstack to Gilbertstr. 30, Hamburg', async (t) => {
 test('Hamburg Tiefstack to Hamburger Meile', async (t) => {
 	const meile = {
 		type: 'location',
-		id: '980001825',
+		id: '980001829',
 		poi: true,
 		name: 'Hamburger Meile',
 		latitude: 53.572455,
@@ -144,7 +140,7 @@ test('trip details', async (t) => {
 		results: 1, departure: when
 	})
 
-	const p = res.journeys[0].legs[0]
+	const p = res.journeys[0].legs.find(l => !l.walking)
 	t.ok(p.tripId, 'precondition failed')
 	t.ok(p.line.name, 'precondition failed')
 	const trip = await client.trip(p.tripId, p.line.name, {when})

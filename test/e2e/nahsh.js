@@ -1,7 +1,5 @@
 'use strict'
 
-const tapePromise = require('tape-promise').default
-const tape = require('tape')
 const isRoughlyEqual = require('is-roughly-equal')
 
 const {createWhen} = require('./lib/util')
@@ -13,6 +11,7 @@ const {
 	station: createValidateStation
 } = require('./lib/validators')
 const createValidate = require('./lib/validate-fptf-with')
+const {test} = require('./lib/util')
 const testJourneysStationToStation = require('./lib/journeys-station-to-station')
 const testJourneysStationToAddress = require('./lib/journeys-station-to-address')
 const testJourneysStationToPoi = require('./lib/journeys-station-to-poi')
@@ -63,7 +62,6 @@ const assertValidPrice = (t, p) => {
 	}
 }
 
-const test = tapePromise(tape)
 const client = createClient(nahshProfile, 'public-transport/hafas-client:test')
 
 const kielHbf = '9049079'
@@ -138,7 +136,7 @@ test('Kiel Hbf to Berliner Str. 80, Husum', async (t) => {
 test('Kiel Hbf to Holstentor', async (t) => {
 	const holstentor = {
 		type: 'location',
-		id: '970003118',
+		id: '970003168',
 		poi: true,
 		name: 'Hansestadt Lübeck, Holstentor (Denkmal)',
 		latitude: 53.866321,
@@ -214,7 +212,7 @@ test('trip details', async (t) => {
 		results: 1, departure: when
 	})
 
-	const p = res.journeys[0].legs[0]
+	const p = res.journeys[0].legs.find(l => !l.walking)
 	t.ok(p.tripId, 'precondition failed')
 	t.ok(p.line.name, 'precondition failed')
 	const trip = await client.trip(p.tripId, p.line.name, {when})

@@ -1,7 +1,5 @@
 'use strict'
 
-const tapePromise = require('tape-promise').default
-const tape = require('tape')
 const isRoughlyEqual = require('is-roughly-equal')
 
 const { createWhen } = require('./lib/util')
@@ -13,6 +11,7 @@ const {
 	stop: validateStop
 } = require('./lib/validators')
 const createValidate = require('./lib/validate-fptf-with')
+const {test} = require('./lib/util')
 const testJourneysStationToStation = require('./lib/journeys-station-to-station')
 const testJourneysStationToAddress = require('./lib/journeys-station-to-address')
 const testJourneysStationToPoi = require('./lib/journeys-station-to-poi')
@@ -51,7 +50,6 @@ const assertValidPrice = (t, p) => {
 	}
 }
 
-const test = tapePromise(tape)
 const client = createClient(saarfahrplanProfile, 'public-transport/hafas-client:test')
 
 const saarbrueckenHbf = '8000323'
@@ -198,7 +196,7 @@ test('trip details', async (t) => {
 		results: 1, departure: when
 	})
 
-	const p = res.journeys[0].legs[0]
+	const p = res.journeys[0].legs.find(l => !l.walking)
 	t.ok(p.tripId, 'precondition failed')
 	t.ok(p.line.name, 'precondition failed')
 	const trip = await client.trip(p.tripId, p.line.name, { when })

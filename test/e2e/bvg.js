@@ -3,10 +3,7 @@
 // todo: DRY with vbb tests
 
 const stations = require('vbb-stations-autocomplete')
-const a = require('assert')
 const shorten = require('vbb-short-station-name')
-const tapePromise = require('tape-promise').default
-const tape = require('tape')
 const isRoughlyEqual = require('is-roughly-equal')
 const {DateTime} = require('luxon')
 const flatMap = require('lodash/flatMap')
@@ -23,6 +20,7 @@ const {
 	validateDeparture,
 	validateMovement
 } = require('./lib/vbb-bvg-validators')
+const {test} = require('./lib/util')
 const testJourneysStationToStation = require('./lib/journeys-station-to-station')
 const testJourneysStationToAddress = require('./lib/journeys-station-to-address')
 const testJourneysStationToPoi = require('./lib/journeys-station-to-poi')
@@ -54,7 +52,6 @@ const validate = createValidate(cfg, {
 	movement: validateMovement
 })
 
-const test = tapePromise(tape)
 const client = createClient(bvgProfile, 'public-transport/hafas-client:test')
 
 const amrumerStr = '900000009101'
@@ -134,7 +131,8 @@ test('journeys – fails with no product', (t) => {
 	t.end()
 })
 
-test('journeys – BerlKönig', async (t) => {
+// BerlKönig for public use is suspended during COVID-19.
+test.skip('journeys – BerlKönig', async (t) => {
 	const when = DateTime.fromMillis(Date.now(), {
 		zone: 'Europe/Berlin',
 		locale: 'de-De',
@@ -229,7 +227,7 @@ test('trip details', async (t) => {
 		results: 1, departure: when
 	})
 
-	const p = res.journeys[0].legs[0]
+	const p = res.journeys[0].legs.find(l => !l.walking)
 	t.ok(p.tripId, 'precondition failed')
 	t.ok(p.line.name, 'precondition failed')
 	const trip = await client.trip(p.tripId, p.line.name, {when})

@@ -1,7 +1,5 @@
 'use strict'
 
-const parseWhen = require('./when')
-const parsePlatform = require('./platform')
 const findRemarks = require('./find-remarks')
 
 const ARRIVAL = 'a'
@@ -9,6 +7,7 @@ const DEPARTURE = 'd'
 
 // todo: what is d.jny.dirFlg?
 // todo: d.stbStop.dProgType/d.stbStop.aProgType
+// todo: d.stbStop.dProdX/aProdX can be different than d.prodX
 
 const createParseArrOrDep = (prefix) => {
 	if (prefix !== ARRIVAL && prefix !== DEPARTURE) throw new Error('invalid prefix')
@@ -46,14 +45,14 @@ const createParseArrOrDep = (prefix) => {
 			]).map(([remark]) => remark)
 		}
 
-   		if (opt.stopovers && Array.isArray(d.stopL)) {
-  			// Filter stations the train passes without stopping, as this doesn't comply with FPTF (yet).
-  			const stopovers = d.stopL
-  			.map(st => profile.parseStopover(ctx, st, d.date))
-  			.filter(st => !st.passBy)
-  			if (prefix === ARRIVAL) res.previousStopovers = stopovers
+		if (opt.stopovers && Array.isArray(d.stopL)) {
+			// Filter stations the train passes without stopping, as this doesn't comply with FPTF (yet).
+			const stopovers = d.stopL
+			.map(st => profile.parseStopover(ctx, st, d.date))
+			.filter(st => !st.passBy)
+			if (prefix === ARRIVAL) res.previousStopovers = stopovers
 			else if (prefix === DEPARTURE) res.nextStopovers = stopovers
-  		}
+		}
 
 		return res
 	}

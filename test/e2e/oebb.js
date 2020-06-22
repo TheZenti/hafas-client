@@ -1,7 +1,5 @@
 'use strict'
 
-const tapePromise = require('tape-promise').default
-const tape = require('tape')
 const isRoughlyEqual = require('is-roughly-equal')
 const validateLine = require('validate-fptf/line')
 
@@ -14,6 +12,7 @@ const {
 	stop: validateStop
 } = require('./lib/validators')
 const createValidate = require('./lib/validate-fptf-with')
+const {test} = require('./lib/util')
 const testJourneysStationToStation = require('./lib/journeys-station-to-station')
 const testJourneysStationToAddress = require('./lib/journeys-station-to-address')
 const testJourneysStationToPoi = require('./lib/journeys-station-to-poi')
@@ -37,9 +36,7 @@ const cfg = {
 
 // todo validateDirection: search list of stations for direction
 
-const validate = createValidate(cfg, {
-	line: validateLine // bypass line validator in lib/validators
-})
+const validate = createValidate(cfg)
 
 const assertValidPrice = (t, p) => {
 	t.ok(p)
@@ -53,7 +50,6 @@ const assertValidPrice = (t, p) => {
 	}
 }
 
-const test = tapePromise(tape)
 const client = createClient(oebbProfile, 'public-transport/hafas-client:test')
 
 const salzburgHbf = '8100002'
@@ -103,10 +99,10 @@ test('journeys – fails with no product', (t) => {
 	t.end()
 })
 
-test('Salzburg Hbf to 1220 Wien, Wagramer Straße 5', async (t) => {
+test('Salzburg Hbf to 1220 Wien, Fischerstrand 7', async (t) => {
 	const wagramerStr = {
 		type: 'location',
-    	address: '1220 Wien, Wagramer Straße 5',
+    	address: '1220 Wien, Fischerstrand 7',
     	latitude: 48.236216,
     	longitude: 16.425863
 	}
@@ -125,16 +121,16 @@ test('Salzburg Hbf to 1220 Wien, Wagramer Straße 5', async (t) => {
 	t.end()
 })
 
-test('Salzburg Hbf to Albertina', async (t) => {
-	const albertina = {
+test('Salzburg Hbf to Uni Wien', async (t) => {
+	const uniWien = {
 		type: 'location',
-		id: '975900003',
+		id: '970076515',
 		poi: true,
-		name: 'Albertina',
-		latitude: 48.204699,
-		longitude: 16.368404
+		name: 'Uni Wien',
+		latitude: 48.212817,
+		longitude: 16.361096,
 	}
-	const res = await client.journeys(salzburgHbf, albertina, {
+	const res = await client.journeys(salzburgHbf, uniWien, {
 		results: 3, departure: when
 	})
 
@@ -143,7 +139,7 @@ test('Salzburg Hbf to Albertina', async (t) => {
 		res,
 		validate,
 		fromId: salzburgHbf,
-		to: albertina
+		to: uniWien,
 	})
 	t.end()
 })
@@ -237,7 +233,7 @@ test('trip details', async (t) => {
 		results: 1, departure: when
 	})
 
-	const p = res.journeys[0].legs[0]
+	const p = res.journeys[0].legs.find(l => !l.walking)
 	t.ok(p.tripId, 'precondition failed')
 	t.ok(p.line.name, 'precondition failed')
 	const trip = await client.trip(p.tripId, p.line.name, {when})
@@ -390,7 +386,13 @@ test('radar Salzburg', async (t) => {
 			const withFakeProducts = Object.assign({products: allProducts}, s)
 			validateStation(validate, withFakeProducts, name)
 		},
-		line: validateLine
+		line: (val, line, name = 'line') => {
+			validateLine(val, {
+				...line,
+				// fptf demands a mode
+				mode: line.mode === null ? 'bus' : line.mode,
+			}, name)
+		},
 	})
 	validate(t, vehicles, 'movements', 'vehicles')
 

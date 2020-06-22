@@ -1,5 +1,101 @@
 # Changelog
 
+## `5.6.1`
+
+- de896b1 `parseCommon`: respect `opt.polyline` 🐛
+- fc2e214 ÖBB: add `trip()` test ✅
+- dce42bf move trip parsing into `parse/trip`
+
+[🏷 `5.6.1`](https://github.com/public-transport/hafas-client/releases/tag/5.6.1), 2020-06-13
+
+## `5.6.1`
+
+- 542aa8c parse `DEVI` journey legs (#175)
+- 3ca4a0c/57fc610 `arrivals()`: add `provenance` field (#180)
+- ee94c65 ÖBB: improve `onCall` product name
+- a8a9303 `nearby()`: return at most `opt.results` results
+
+[🏷 `5.6.1`](https://github.com/public-transport/hafas-client/releases/tag/5.6.1), 2020-06-10
+
+## `5.6.0`
+
+- 07c77f8/76e3102/1abafb5/d92eb15/0251e31 parse stop/station entrances & sub-stops (#153)
+- 9e75f42/0251e31/322004b DB: parse *Reisezentrum* opening hours & station facilities (#153)
+
+[🏷 `5.6.0`](https://github.com/public-transport/hafas-client/releases/tag/5.6.0), 2020-05-21
+
+## `5.5.1`
+
+- 3c888a0 `refreshJourney()`: actually throw the error 🐛, add error code
+- e02a20b readme: update links 📝
+- b302ba7 minor readme/documentation tweaks 📝
+
+[🏷 `5.5.1`](https://github.com/public-transport/hafas-client/releases/tag/5.5.1), 2020-05-21
+
+## `5.5.0`
+
+- fa3146d/9c4189a add [*SVV* profile](../p/svv)
+- e032ec1 "invalid response" error: add `isHafasError: true` flag
+- 0699d4d `departures()`/`arrivals()`: let `results` option default to `null`
+- 1b01331 use `object-scan@13` ⚡️
+
+[🏷 `5.5.0`](https://github.com/public-transport/hafas-client/releases/tag/5.5.0), 2020-04-09
+
+## `5.4.0`
+
+- 01b3693/17031f3/7d3107e add [*SNCB*/*NMBS* profile](../p/sncb)
+- ae74bb4 `departures()`/`arrivals()`: add `results` option
+
+[🏷 `5.4.0`](https://github.com/public-transport/hafas-client/releases/tag/5.4.0), 2020-03-29
+
+## `5.3.1`
+
+- 916ac30 PKP: trim `-` from stop names
+- a939090 INSA: `ver` `1.21` -> `1.18` 🐛
+- 2cb6a0c `parseIcon()`, `parseHint()`, `parseLocation()`: handle more edge cases 🐛
+- 0dceb41 `parseJourneyLeg()`: parse isRchbl correctly 🐛
+- 78487d9 `journeys()`: default `earlierRef` & `laterRef` to `null` 🐛
+- cda96b6 improve docs 📝
+
+[🏷 `5.3.1`](https://github.com/public-transport/hafas-client/releases/tag/5.3.1), 2020-03-18
+
+## `5.3.0`
+
+- 1c790e1/299b5ac add [*INVG* profile](../p/invg)
+- d5116c2/c2b15fa add [*PKP* profile](../p/pkp)
+- 682f9f9/8540f5f add [*VBN* profile](../p/vbn)
+- 3a9e548/0ea2c01 add [*RMV* profile](../p/rmv)
+- 84637b2/522248b add [*RSAG* profile](../p/rsag)
+- 86ddf2c add [*VMT* profile](../p/vmt)
+
+[🏷 `5.3.0`](https://github.com/public-transport/hafas-client/releases/tag/5.3.0), 2020-03-12
+
+## `5.2.0`
+
+- 1b03b2e INSA: protocol version `1.21`, enable [`reachableFrom()`](reachable-from.md)
+- 2a24137/3ea9380 `parseLocation()`: parse foreign stop IDs
+- 3ea9380 `parseLocation()`: parse fare zone, transit authority
+- 8c7f164 `parseLine()`: expose admin code
+- b9d5c85 add DB & INSA `stop()` tests
+
+[🏷 `5.2.0`](https://github.com/public-transport/hafas-client/releases/tag/5.2.0), 2020-03-08
+
+## `5.1.2`
+
+- e5abe3d DB: fix journey leg loadFactor parsing 🐛
+- bc30309 fix undefined variables 🐛
+- db94a62/c072a70/df010fc/9874292 add linting
+
+[🏷 `5.1.2`](https://github.com/public-transport/hafas-client/releases/tag/5.1.2), 2020-03-02
+
+## `5.1.1`
+
+- 8cb7d80 improve `findInTree` performance (#152) ⚡️
+- 940519b make readme more helpful 📝
+- 9522e92 `object-scan@11`
+
+[🏷 `5.1.1`](https://github.com/public-transport/hafas-client/releases/tag/5.1.1), 2020-02-22
+
 ## `5.1.0`
 
 - 542a9ee/1c67350/738354d add [*VSN* profile](../p/vsn)

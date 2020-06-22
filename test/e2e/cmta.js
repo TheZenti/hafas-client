@@ -1,14 +1,11 @@
 'use strict'
 
-const assert = require('assert')
-const tapePromise = require('tape-promise').default
-const tape = require('tape')
-
 const {createWhen} = require('./lib/util')
 const createClient = require('../..')
 const cmtaProfile = require('../../p/cmta')
 const products = require('../../p/cmta/products')
 const createValidate = require('./lib/validate-fptf-with')
+const {test} = require('./lib/util')
 const testJourneysStationToStation = require('./lib/journeys-station-to-station')
 const testJourneysStationToAddress = require('./lib/journeys-station-to-address')
 const testJourneysStationToPoi = require('./lib/journeys-station-to-poi')
@@ -34,7 +31,6 @@ const cfg = {
 
 const validate = createValidate(cfg)
 
-const test = tapePromise(tape)
 const client = createClient(cmtaProfile, 'public-transport/hafas-client:test')
 
 const broadieOaks = '2370'
@@ -98,7 +94,7 @@ test('Domain to 1104 Elm Street, Austin, TX 78703', async (t) => {
 test('Domain to Whole Foods Market - North Lamar Blvd', async (t) => {
 	const wholeFoodsMarket = {
 		type: 'location',
-		id: '9845565', // or `9871373`
+		id: '9830561', // or `9855367`
 		poi: true,
 		name: 'Whole Foods Market - N Lamar Blvd',
 		latitude: 30.270653,
@@ -154,7 +150,7 @@ test('trip details', async (t) => {
 		results: 1, departure: when
 	})
 
-	const p = res.journeys[0].legs[0]
+	const p = res.journeys[0].legs.find(l => !l.walking)
 	t.ok(p.tripId, 'precondition failed')
 	t.ok(p.line.name, 'precondition failed')
 	const trip = await client.trip(p.tripId, p.line.name, {when})

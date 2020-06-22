@@ -1,13 +1,12 @@
 'use strict'
 
-const minBy = require('lodash/minBy')
-const maxBy = require('lodash/maxBy')
 const isObj = require('lodash/isObject')
 const sortBy = require('lodash/sortBy')
 const pRetry = require('p-retry')
 
 const defaultProfile = require('./lib/default-profile')
 const validateProfile = require('./lib/validate-profile')
+const {INVALID_REQUEST} = require('./lib/errors')
 
 const isNonEmptyString = str => 'string' === typeof str && str.length > 0
 
@@ -51,6 +50,9 @@ const createClient = (profile, userAgent, opt = {}) => {
 			// todo: for arrivals(), this is actually a station it *has already* stopped by
 			direction: null, // only show departures stopping by this station
 			duration: 10, // show departures for the next n minutes
+			results: null, // max. number of results; `null` means "whatever HAFAS wants"
+			subStops: true, // parse & expose sub-stops of stations?
+			entrances: true, // parse & expose entrances of stops/stations?
 			linesOfStops: false, // parse & expose lines at the stop/station?
 			remarks: true, // parse & expose hints & warnings?
 			stopovers: false, // fetch & parse previous/next stopovers?
@@ -111,7 +113,7 @@ const createClient = (profile, userAgent, opt = {}) => {
 		}
 
 		opt = Object.assign({
-			results: null, // number of journeys – `null` means "whatever HAFAS returns"
+			results: null, // number of journeys – `null` means "whatever HAFAS returns"
 			via: null, // let journeys pass this station?
 			stopovers: false, // return stations on the way?
 			transfers: -1, // maximum of 5 transfers
@@ -119,12 +121,14 @@ const createClient = (profile, userAgent, opt = {}) => {
 			// todo: does this work with every endpoint?
 			accessibility: 'none', // 'none', 'partial' or 'complete'
 			bike: false, // only bike-friendly journeys
-			tickets: false, // return tickets?
-			polylines: false, // return leg shapes?
-			remarks: true, // parse & expose hints & warnings?
 			walkingSpeed: 'normal', // 'slow', 'normal', 'fast'
 			// Consider walking to nearby stations at the beginning of a journey?
 			startWithWalking: true,
+			tickets: false, // return tickets?
+			polylines: false, // return leg shapes?
+			subStops: true, // parse & expose sub-stops of stations?
+			entrances: true, // parse & expose entrances of stops/stations?
+			remarks: true, // parse & expose hints & warnings?
 			scheduledDays: false
 		}, opt)
 		if (opt.via) opt.via = profile.formatLocation(profile, opt.via, 'opt.via')
@@ -175,12 +179,9 @@ const createClient = (profile, userAgent, opt = {}) => {
 		// until we have enough.
 		// todo: revert this change, see https://github.com/public-transport/hafas-client/issues/76#issuecomment-424448449
 		const journeys = []
-		let earlierRef, laterRef
+		let earlierRef = null, laterRef = null
 		const more = (when, journeysRef) => {
 			const query = {
-				outDate: profile.formatDate(profile, when),
-				outTime: profile.formatTime(profile, when),
-				ctxScr: journeysRef,
 				getPasslist: !!opt.stopovers,
 				maxChg: opt.transfers,
 				minChgTime: opt.transferTime,
@@ -198,6 +199,12 @@ const createClient = (profile, userAgent, opt = {}) => {
 				getIV: false, // todo: walk & bike as alternatives?
 				getPolyline: !!opt.polylines
 				// todo: `getConGroups: false` what is this?
+				// todo: what is getEco, fwrd?
+			}
+			if (journeysRef) query.ctxScr = journeysRef
+			else {
+				query.outDate = profile.formatDate(profile, when)
+				query.outTime = profile.formatTime(profile, when)
 			}
 			if (profile.journeysNumF && opt.results !== null) query.numF = opt.results
 			if (profile.journeysOutFrwd) query.outFrwd = outFrwd
@@ -239,13 +246,15 @@ const createClient = (profile, userAgent, opt = {}) => {
 
 	const refreshJourney = (refreshToken, opt = {}) => {
 		if ('string' !== typeof refreshToken || !refreshToken) {
-			new TypeError('refreshToken must be a non-empty string.')
+			throw new TypeError('refreshToken must be a non-empty string.')
 		}
 
 		opt = Object.assign({
 			stopovers: false, // return stations on the way?
 			tickets: false, // return tickets?
 			polylines: false, // return leg shapes?
+			subStops: true, // parse & expose sub-stops of stations?
+			entrances: true, // parse & expose entrances of stops/stations?
 			remarks: true // parse & expose hints & warnings?
 		}, opt)
 
@@ -254,7 +263,11 @@ const createClient = (profile, userAgent, opt = {}) => {
 		return profile.request({profile, opt}, userAgent, req)
 		.then(({res, common}) => {
 			if (!Array.isArray(res.outConL) || !res.outConL[0]) {
-				throw new Error('invalid response')
+				const err = new Error('invalid response')
+				// technically this is not a HAFAS error
+				// todo: find a different flag with decent DX
+				err.isHafasError = true
+				throw err
 			}
 
 			const ctx = {profile, opt, common, res}
@@ -272,6 +285,8 @@ const createClient = (profile, userAgent, opt = {}) => {
 			stops: true, // return stops/stations?
 			addresses: true,
 			poi: true, // points of interest
+			subStops: true, // parse & expose sub-stops of stations?
+			entrances: true, // parse & expose entrances of stops/stations?
 			linesOfStops: false // parse & expose lines at each stop/station?
 		}, opt)
 
@@ -292,7 +307,10 @@ const createClient = (profile, userAgent, opt = {}) => {
 		else throw new TypeError('stop must be an object or a string.')
 
 		opt = Object.assign({
-			linesOfStops: false // parse & expose lines at the stop/station?
+			linesOfStops: false, // parse & expose lines at the stop/station?
+			subStops: true, // parse & expose sub-stops of stations?
+			entrances: true, // parse & expose entrances of stops/stations?
+			remarks: true, // parse & expose hints & warnings?
 		}, opt)
 
 		const req = profile.formatStopReq({profile, opt}, stop)
@@ -301,7 +319,13 @@ const createClient = (profile, userAgent, opt = {}) => {
 		.then(({res, common}) => {
 			if (!res || !Array.isArray(res.locL) || !res.locL[0]) {
 				// todo: proper stack trace?
-				throw new Error('invalid response')
+				// todo: DRY with lib/request.js
+				const err = new Error('response has no stop')
+				// technically this is not a HAFAS error
+				// todo: find a different flag with decent DX
+				err.isHafasError = true
+				err.code = INVALID_REQUEST
+				throw err
 			}
 
 			const ctx = {profile, opt, res, common}
@@ -317,6 +341,8 @@ const createClient = (profile, userAgent, opt = {}) => {
 			distance: null, // maximum walking distance in meters
 			poi: false, // return points of interest?
 			stops: true, // return stops/stations?
+			subStops: true, // parse & expose sub-stops of stations?
+			entrances: true, // parse & expose entrances of stops/stations?
 			linesOfStops: false // parse & expose lines at each stop/station?
 		}, opt)
 
@@ -327,7 +353,8 @@ const createClient = (profile, userAgent, opt = {}) => {
 			if (!Array.isArray(res.locL)) return []
 
 			const ctx = {profile, opt, common, res}
-			return res.locL.map(loc => profile.parseNearby(ctx, loc))
+			const results = res.locL.map(loc => profile.parseNearby(ctx, loc))
+			return Number.isInteger(opt.results) ? results.slice(0, opt.results) : results
 		})
 	}
 
@@ -341,6 +368,8 @@ const createClient = (profile, userAgent, opt = {}) => {
 		opt = Object.assign({
 			stopovers: true, // return stations on the way?
 			polyline: false, // return a track shape?
+			subStops: true, // parse & expose sub-stops of stations?
+			entrances: true, // parse & expose entrances of stops/stations?
 			remarks: true // parse & expose hints & warnings?
 		}, opt)
 
@@ -349,17 +378,7 @@ const createClient = (profile, userAgent, opt = {}) => {
 		return profile.request({profile, opt}, userAgent, req)
 		.then(({common, res}) => {
 			const ctx = {profile, opt, common, res}
-
-			const rawLeg = { // pretend the leg is contained in a journey
-				type: 'JNY',
-				dep: minBy(res.journey.stopL, 'idx'),
-				arr: maxBy(res.journey.stopL, 'idx'),
-				jny: res.journey
-			}
-			const trip = profile.parseJourneyLeg(ctx, rawLeg, res.journey.date)
-			trip.id = trip.tripId
-			delete trip.tripId
-			return trip
+			return profile.parseTrip(ctx, res.journey)
 		})
 	}
 
@@ -377,7 +396,9 @@ const createClient = (profile, userAgent, opt = {}) => {
 			// todo: what happens with `frames: 0`?
 			frames: 3, // nr of frames to compute
 			products: null, // optionally an object of booleans
-			polylines: true // return a track shape for each vehicle?
+			polylines: true, // return a track shape for each vehicle?
+			subStops: true, // parse & expose sub-stops of stations?
+			entrances: true, // parse & expose entrances of stops/stations?
 		}, opt || {})
 		opt.when = new Date(opt.when || Date.now())
 		if (Number.isNaN(+opt.when)) throw new TypeError('opt.when is invalid')
@@ -400,7 +421,9 @@ const createClient = (profile, userAgent, opt = {}) => {
 			when: Date.now(),
 			maxTransfers: 5, // maximum of 5 transfers
 			maxDuration: 20, // maximum travel duration in minutes, pass `null` for infinite
-			products: {}
+			products: {},
+			subStops: true, // parse & expose sub-stops of stations?
+			entrances: true, // parse & expose entrances of stops/stations?
 		}, opt)
 		if (Number.isNaN(+opt.when)) throw new TypeError('opt.when is invalid')
 

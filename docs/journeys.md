@@ -55,6 +55,9 @@ With `opt`, you can override the default options, which look like this:
 	transferTime: 0, // minimum time for a single transfer in minutes
 	accessibility: 'none', // 'none', 'partial' or 'complete'
 	bike: false, // only bike-friendly journeys
+	walkingSpeed: 'normal', // 'slow', 'normal', 'fast'
+	// Consider walking to nearby stations at the beginning of a journey?
+	startWithWalking: true,
 	products: {
 		// these entries may vary from profile to profile
 		suburban: true,
@@ -67,12 +70,11 @@ With `opt`, you can override the default options, which look like this:
 	},
 	tickets: false, // return tickets? only available with some profiles
 	polylines: false, // return a shape for each leg?
+	subStops: true, // parse & expose sub-stops of stations?
+	entrances: true, // parse & expose entrances of stops/stations?
 	remarks: true, // parse & expose hints & warnings?
-	// Consider walking to nearby stations at the beginning of a journey?
-	walkingSpeed: 'normal', // 'slow', 'normal', 'fast'
-	startWithWalking: true,
+	scheduledDays: false, // parse which days each journey is valid on
 	language: 'en', // language to get results in
-	scheduledDays: false // parse which days each journey is valid on
 }
 ```
 

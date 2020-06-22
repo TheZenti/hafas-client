@@ -23,6 +23,8 @@ With `opt`, you can override the default options, which look like this:
 
 ```js
 {
+	subStops: true, // parse & expose sub-stops of stations?
+	entrances: true, // parse & expose entrances of stops/stations?
 	linesOfStops: false, // parse & expose lines at the stop/station?
 	language: 'en' // language to get results in
 }
@@ -92,4 +94,14 @@ The response may look like this:
 		night: true
 	} ]
 }
+```
+
+If the endpoint returns a list of entrances for a station, the resulting station object will have an `entrances` array looking similar to this:
+
+```js
+[
+	{type: 'location', latitude: 47.411069, longitude: 10.277412},
+	{type: 'location', latitude: 47.410493, longitude: 10.277223},
+	{type: 'location', latitude: 47.410754, longitude: 10.278023}
+]
 ```

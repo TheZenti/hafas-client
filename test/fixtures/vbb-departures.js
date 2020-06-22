@@ -185,12 +185,14 @@ module.exports = [
 		platform: null,
 		plannedPlatform: null,
 		direction: 'S+U Hermannstr.',
+		provenance: null,
 		line: {
 			type: 'line',
 			id: 'u8',
 			fahrtNr: '19869',
 			name: 'U8',
 			public: true,
+			adminCode: 'BVU',
 			mode: 'train',
 			product: 'subway',
 			operator: {
@@ -848,12 +850,14 @@ module.exports = [
 		platform: null,
 		plannedPlatform: null,
 		direction: 'U Paracelsus-Bad',
+		provenance: null,
 		line: {
 			type: 'line',
 			id: 'u8',
 			fahrtNr: '19453',
 			name: 'U8',
 			public: true,
+			adminCode: 'BVU',
 			mode: 'train',
 			product: 'subway',
 			operator: {
@@ -1606,12 +1610,14 @@ module.exports = [
 		platform: '4',
 		plannedPlatform: '4',
 		direction: 'S Spandau',
+		provenance: null,
 		line: {
 			type: 'line',
 			id: 's9',
 			fahrtNr: '27739',
 			name: 'S9',
 			public: true,
+			adminCode: 'DBS',
 			mode: 'train',
 			product: 'suburban',
 			operator: {

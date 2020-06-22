@@ -24,6 +24,7 @@ const transformReqBody = (ctx, body) => {
 	return body
 }
 
+// todo: https://m.tagesspiegel.de/berlin/fahrerlebnis-wie-im-regionalexpress-so-faehrt-es-sich-in-der-neuen-express-s-bahn/25338674.html
 const parseLineWithMoreDetails = ({parsed}, p) => {
 	parsed.name = p.name.replace(/^(bus|tram)\s+/i, '')
 	const details = parseLineName(parsed.name)
@@ -37,7 +38,7 @@ const parseLineWithMoreDetails = ({parsed}, p) => {
 }
 
 const parseLocation = ({parsed}, l) => {
-	if (parsed.type === 'stop' || parsed.type === 'station') {
+	if ((parsed.type === 'stop' || parsed.type === 'station') && parsed.id[0] === '9') {
 		parsed.name = shorten(parsed.name)
 		parsed.id = to12Digit(parsed.id)
 		if (!parsed.location.latitude || !parsed.location.longitude) {

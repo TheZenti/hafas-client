@@ -1,8 +1,6 @@
 'use strict'
 
 const assert = require('assert')
-const tapePromise = require('tape-promise').default
-const tape = require('tape')
 const isRoughlyEqual = require('is-roughly-equal')
 
 const {createWhen} = require('./lib/util')
@@ -15,6 +13,7 @@ const {
 	movement: _validateMovement
 } = require('./lib/validators')
 const createValidate = require('./lib/validate-fptf-with')
+const {test} = require('./lib/util')
 const testJourneysStationToStation = require('./lib/journeys-station-to-station')
 const testJourneysStationToAddress = require('./lib/journeys-station-to-address')
 const testJourneysStationToPoi = require('./lib/journeys-station-to-poi')
@@ -67,7 +66,6 @@ const validate = createValidate(cfg, {
 	movement: validateMovement
 })
 
-const test = tapePromise(tape)
 const client = createClient(cflProfile, 'public-transport/hafas-client:test')
 
 const ettelbruck = '9258199'
@@ -161,7 +159,8 @@ test('earlier/later journeys', async (t) => {
 		fetchJourneys: client.journeys,
 		validate,
 		fromId: luxembourg,
-		toId: ettelbruck
+		toId: ettelbruck,
+		when,
 	})
 
 	t.end()
@@ -172,7 +171,7 @@ test('trip', async (t) => {
 		results: 1, departure: when
 	})
 
-	const p = journeys[0].legs[0]
+	const p = journeys[0].legs.find(l => !l.walking)
 	t.ok(p.tripId, 'precondition failed')
 	t.ok(p.line.name, 'precondition failed')
 	const trip = await client.trip(p.tripId, p.line.name, {when})

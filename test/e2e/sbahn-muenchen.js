@@ -1,15 +1,12 @@
 'use strict'
 
-const assert = require('assert')
-const tapePromise = require('tape-promise').default
-const tape = require('tape')
-
 const {createWhen} = require('./lib/util')
 const createClient = require('../..')
 const sMunichProfile = require('../../p/sbahn-muenchen')
 const products = require('../../p/sbahn-muenchen/products')
 const {movement: _validateMovement} = require('./lib/validators')
 const createValidate = require('./lib/validate-fptf-with')
+const {test} = require('./lib/util')
 const testJourneysStationToStation = require('./lib/journeys-station-to-station')
 const testJourneysStationToAddress = require('./lib/journeys-station-to-address')
 const testJourneysStationToPoi = require('./lib/journeys-station-to-poi')
@@ -50,7 +47,6 @@ const validate = createValidate(cfg, {
 	movement: validateMovement
 })
 
-const test = tapePromise(tape)
 const client = createClient(sMunichProfile, 'public-transport/hafas-client:test')
 
 const mittersendling = '8004154'
@@ -169,7 +165,7 @@ test('trip details', async (t) => {
 		results: 1, departure: when
 	})
 
-	const p = res.journeys[0].legs.find(leg => leg.line)
+	const p = res.journeys[0].legs.find(l => !l.walking)
 	t.ok(p.tripId, 'precondition failed')
 	t.ok(p.line.name, 'precondition failed')
 	const trip = await client.trip(p.tripId, p.line.name, {when})
@@ -178,8 +174,9 @@ test('trip details', async (t) => {
 	t.end()
 })
 
-test('departures at Karl-Theodor-Straße', async (t) => {
-	const departures = await client.departures(karlTheodorStr, {
+test('departures at Dietlindenstraße', async (t) => {
+	const dietlindenstr = '624391'
+	const departures = await client.departures(dietlindenstr, {
 		duration: 10, when,
 		stopovers: true
 	})
@@ -188,7 +185,7 @@ test('departures at Karl-Theodor-Straße', async (t) => {
 		test: t,
 		departures,
 		validate,
-		id: karlTheodorStr
+		id: dietlindenstr
 	})
 	t.end()
 })

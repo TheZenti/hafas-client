@@ -13,9 +13,17 @@ const applyRemarks = (leg, refs) => {
 	for (let [remark, ref] of findRemarks(refs)) {
 		const {fromLocation, toLocation} = ref
 
-		const fromI = fromLocation ? leg.stopovers.findIndex(s => s.stop === fromLocation) : -1
-		const toI = toLocation ? leg.stopovers.findIndex(s => s.stop === toLocation) : -1
-		if (fromI < 0 || toI < 0) continue
+		let fromI = 0, toI = leg.stopovers.length - 1
+		// this fails if `s.stop` is a new object (not reference-equal)
+		// todo: do this index- or ID-based
+		if (fromLocation) {
+			fromI = leg.stopovers.findIndex(s => s.stop === fromLocation)
+			if (fromI < 0) continue
+		}
+		if (toLocation) {
+			toI = leg.stopovers.findIndex(s => s.stop === toLocation)
+			if (toI < 0) continue
+		}
 
 		const wholeLeg = fromI === 0 && toI === (leg.stopovers.length - 1)
 		if (wholeLeg) addRemark(leg, remark)
@@ -48,17 +56,17 @@ const parseJourneyLeg = (ctx, pt, date) => { // pt = raw leg
 		destination: clone(pt.arr.location)
 	}
 
-	const arr = profile.parseWhen(ctx, date, pt.arr.aTimeS, pt.arr.aTimeR, pt.arr.aTZOffset, pt.arr.aCncl)
-	res.arrival = arr.when
-	res.plannedArrival = arr.plannedWhen
-	res.arrivalDelay = arr.delay
-	if (arr.prognosedWhen) res.prognosedArrival = arr.prognosedWhen
-
 	const dep = profile.parseWhen(ctx, date, pt.dep.dTimeS, pt.dep.dTimeR, pt.dep.dTZOffset, pt.dep.dCncl)
 	res.departure = dep.when
 	res.plannedDeparture = dep.plannedWhen
 	res.departureDelay = dep.delay
 	if (dep.prognosedWhen) res.prognosedDeparture = dep.prognosedWhen
+
+	const arr = profile.parseWhen(ctx, date, pt.arr.aTimeS, pt.arr.aTimeR, pt.arr.aTZOffset, pt.arr.aCncl)
+	res.arrival = arr.when
+	res.plannedArrival = arr.plannedWhen
+	res.arrivalDelay = arr.delay
+	if (arr.prognosedWhen) res.prognosedArrival = arr.prognosedWhen
 
 	if (pt.jny && ('isRchbl' in pt.jny)) {
 		res.reachable = !!pt.jny.isRchbl
